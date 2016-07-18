@@ -17,7 +17,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
 #import <UIKit/UIKit.h>
 
 /**
@@ -38,7 +37,7 @@
  
  @return The newly-initialized bar button item.
  */
--(instancetype)initWithTarget:(id)target action:(SEL)action;
+-(id)initWithTarget:(id)target action:(SEL)action;
 
 /**
  Returns the current color of the menu button for the state requested. This property is deprecated in iOS 7.0. Use `tintColor` instead.
