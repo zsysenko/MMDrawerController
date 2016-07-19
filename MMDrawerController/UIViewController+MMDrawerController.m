@@ -48,7 +48,7 @@
              [self.navigationController isEqual:self.mm_drawerController.rightDrawerViewController]){
         CGRect rect = self.mm_drawerController.view.bounds;
         rect.size.width = self.mm_drawerController.maximumRightDrawerWidth;
-        rect.origin.x = CGRectGetWidth(self.mm_drawerController.view.bounds)-rect.size.width;
+        rect.origin.x = CGRectGetWidth(self.mm_drawerController.view.bounds);
         return rect;
     }
     else {
