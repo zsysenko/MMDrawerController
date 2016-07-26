@@ -1023,14 +1023,11 @@ static NSString *MMDrawerOpenSideKey = @"MMDrawerOpenSide";
 
 #pragma mark - Gesture Handlers
 
--(void)tapGestureCallback:(UITapGestureRecognizer *)tapGesture{
+-(void)tapGestureCallback:(UITapGestureRecognizer *)tapGesture {
+    
     if(self.openSide != MMDrawerSideNone &&
        self.isAnimatingDrawer == NO){
-        [self closeDrawerAnimated:YES completion:^(BOOL finished) {
-            if(self.gestureCompletion){
-                self.gestureCompletion(self, tapGesture);
-            }
-        }];
+        [self closeDrawerAnimated:YES completion:^(BOOL finished) {}];
     } else {
         if(self.gestureCompletion){
             self.gestureCompletion(self, tapGesture);
@@ -1085,7 +1082,6 @@ static NSString *MMDrawerOpenSideKey = @"MMDrawerOpenSide";
             }
             else if(visibleSide == MMDrawerSideNone){
                 [self setOpenSide:MMDrawerSideNone];
-                [self dismissShadow];
             }
             
             [self updateDrawerVisualStateForDrawerSide:visibleSide percentVisible:percentVisible];
@@ -1320,12 +1316,12 @@ static inline CGFloat originXForDrawerOriginAndTargetOriginOffset(CGFloat origin
     }
 }
 
--(NSTimeInterval)animationDurationForAnimationDistance:(CGFloat)distance{
+- (NSTimeInterval)animationDurationForAnimationDistance:(CGFloat)distance{
     NSTimeInterval duration = MAX(distance/self.animationVelocity,MMDrawerMinimumAnimationDuration);
     return duration;
 }
 
--(UIViewController*)sideDrawerViewControllerForSide:(MMDrawerSide)drawerSide{
+- (UIViewController*)sideDrawerViewControllerForSide:(MMDrawerSide)drawerSide{
     UIViewController * sideDrawerViewController = nil;
     if(drawerSide != MMDrawerSideNone){
         sideDrawerViewController = [self childViewControllerForSide:drawerSide];
@@ -1333,7 +1329,7 @@ static inline CGFloat originXForDrawerOriginAndTargetOriginOffset(CGFloat origin
     return sideDrawerViewController;
 }
 
--(UIViewController*)childViewControllerForSide:(MMDrawerSide)drawerSide{
+- (UIViewController*)childViewControllerForSide:(MMDrawerSide)drawerSide{
     UIViewController * childViewController = nil;
     switch (drawerSide) {
         case MMDrawerSideLeft:
