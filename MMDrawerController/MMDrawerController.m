@@ -27,8 +27,7 @@
 CGFloat const MMCloseOffset = 120.0f;
 
 CGFloat const MMDrawerDefaultWidth = 280.0f;
-CGFloat const MMDrawerDefaultAnimationVelocity = 840.f
-;
+CGFloat const MMDrawerDefaultAnimationVelocity = 840.f;
 
 NSTimeInterval const MMDrawerDefaultFullAnimationDelay = 0.10f;
 
@@ -37,8 +36,8 @@ CGFloat const MMDrawerDefaultBounceDistance = 50.0f;
 NSTimeInterval const MMDrawerDefaultBounceAnimationDuration = 0.2f;
 CGFloat const MMDrawerDefaultSecondBounceDistancePercentage = .25f;
 
-CGFloat const MMDrawerDefaultShadowRadius = 10.0f;
-CGFloat const MMDrawerDefaultShadowOpacity = 0.8;
+CGFloat const MMDrawerDefaultShadowRadius = 2.0f;
+CGFloat const MMDrawerDefaultShadowOpacity = 0.5;
 
 NSTimeInterval const MMDrawerMinimumAnimationDuration = 0.15f;
 
@@ -447,7 +446,7 @@ static NSString *MMDrawerOpenSideKey = @"MMDrawerOpenSide";
     [self.childControllerContainerView bringSubviewToFront:self.centerContainerView];
     [self.childControllerContainerView insertSubview:self.alphaShadowView atIndex:1];
     [self.centerViewController.view setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
-    [self updateShadowForCenterView];
+
     
     if(animated == NO){
         // If drawer is offscreen, then viewWillAppear: will take care of this
@@ -725,7 +724,6 @@ static NSString *MMDrawerOpenSideKey = @"MMDrawerOpenSide";
 
 -(void)viewDidAppear:(BOOL)animated{
     [super viewDidAppear:animated];
-    [self updateShadowForCenterView];
     [self.centerViewController endAppearanceTransition];
     
     if(self.openSide == MMDrawerSideLeft) {
@@ -787,8 +785,6 @@ static NSString *MMDrawerOpenSideKey = @"MMDrawerOpenSide";
         if(oldShadowPath){
             CFRetain(oldShadowPath);
         }
-        
-        [self updateShadowForCenterView];
         
         if (oldShadowPath) {
             [self.centerContainerView.layer addAnimation:((^ {
@@ -865,7 +861,6 @@ static NSString *MMDrawerOpenSideKey = @"MMDrawerOpenSide";
         }
         else{
             [self.childControllerContainerView insertSubview:viewController.view atIndex:1];
-//            [viewController.view setHidden:YES];
         }
         [viewController didMoveToParentViewController:self];
         [viewController.view setAutoresizingMask:autoResizingMask];
@@ -879,7 +874,6 @@ static NSString *MMDrawerOpenSideKey = @"MMDrawerOpenSide";
 
 -(void)setShowsShadow:(BOOL)showsShadow{
     _showsShadow = showsShadow;
-    [self updateShadowForCenterView];
 }
 
 -(void)setOpenSide:(MMDrawerSide)openSide{
@@ -887,14 +881,27 @@ static NSString *MMDrawerOpenSideKey = @"MMDrawerOpenSide";
         _openSide = openSide;
         [self.centerContainerView setOpenSide:openSide];
         if(openSide == MMDrawerSideNone){
-//              [self.leftDrawerViewController.view setHidden:YES];
-//            [self.rightDrawerViewController.view setHidden:YES];
+            [self.alphaShadowView setBackgroundColor:[UIColor colorWithWhite:0.f alpha:0.f]];
+            [self dismissShadow];
         }
         [self setNeedsStatusBarAppearanceUpdateIfSupported];
     }
 }
+- (void)dismissShadow {
+    self.rightDrawerViewController.view.layer.shadowRadius = 0.f;
+    self.rightDrawerViewController.view.layer.shadowOpacity = 0.f;
+    self.rightDrawerViewController.view.layer.shadowPath = NULL;
+    self.rightDrawerViewController.view.layer.masksToBounds = YES;
+    [self.rightDrawerViewController.view.layer setShadowOffset:CGSizeZero];
+    
+    self.leftDrawerViewController.view.layer.shadowRadius = 0.f;
+    self.leftDrawerViewController.view.layer.shadowOpacity = 0.f;
+    self.leftDrawerViewController.view.layer.shadowPath = NULL;
+    self.leftDrawerViewController.view.layer.masksToBounds = YES;
+    [self.leftDrawerViewController.view.layer setShadowOffset:CGSizeZero];
+}
 
--(void)setCenterHiddenInteractionMode:(MMDrawerOpenCenterInteractionMode)centerHiddenInteractionMode{
+- (void)setCenterHiddenInteractionMode:(MMDrawerOpenCenterInteractionMode)centerHiddenInteractionMode{
     if(_centerHiddenInteractionMode!=centerHiddenInteractionMode){
         _centerHiddenInteractionMode = centerHiddenInteractionMode;
         [self.centerContainerView setCenterInteractionMode:centerHiddenInteractionMode];
@@ -1061,8 +1068,8 @@ static NSString *MMDrawerOpenSideKey = @"MMDrawerOpenSide";
                 visibleSide = MMDrawerSideRight;
                 percentVisible = ABS(xOffset)/self.maximumRightDrawerWidth;
             }
-            UIViewController * visibleSideDrawerViewController = [self sideDrawerViewControllerForSide:visibleSide];
             
+            UIViewController * visibleSideDrawerViewController = [self sideDrawerViewControllerForSide:visibleSide];
             if(self.openSide != visibleSide){
                 //Handle disappearing the visible drawer
                 UIViewController * sideDrawerViewController = [self sideDrawerViewControllerForSide:self.openSide];
@@ -1073,13 +1080,15 @@ static NSString *MMDrawerOpenSideKey = @"MMDrawerOpenSide";
                 [self prepareToPresentDrawer:visibleSide animated:NO];
                 [visibleSideDrawerViewController endAppearanceTransition];
                 [self setOpenSide:visibleSide];
+                
+   
             }
             else if(visibleSide == MMDrawerSideNone){
                 [self setOpenSide:MMDrawerSideNone];
+                [self dismissShadow];
             }
             
             [self updateDrawerVisualStateForDrawerSide:visibleSide percentVisible:percentVisible];
-            //[self.centerContainerView setCenter:CGPointMake(CGRectGetMidX(newFrame), CGRectGetMidY(newFrame))];
             break;
         }
         case UIGestureRecognizerStateEnded:
@@ -1162,15 +1171,19 @@ static NSString *MMDrawerOpenSideKey = @"MMDrawerOpenSide";
     CGFloat maxAlphaValue = 0.6f;
     
     if(drawerSide == MMDrawerSideNone) {
-        [self.alphaShadowView setBackgroundColor:[UIColor colorWithWhite:0.f alpha:0.f]];
+        [self dismissShadow];
+
     } else if(drawerSide == MMDrawerSideLeft) {
         CGFloat percentWithOffset = percentVisible - (MMCloseOffset/self.maximumLeftDrawerWidth);
         CGFloat alphaValue = (percentWithOffset * maxAlphaValue);
         [self.alphaShadowView setBackgroundColor:[UIColor colorWithWhite:0.f alpha:alphaValue]];
+        if (CGRectGetMaxX(self.leftDrawerViewController.view.frame) > MMCloseOffset) {
+            [self showShadowForSide:drawerSide];
+        }
     } else {
-
         CGFloat alphaValue = (percentVisible * maxAlphaValue);
         [self.alphaShadowView setBackgroundColor:[UIColor colorWithWhite:0.f alpha:alphaValue]];
+        [self showShadowForSide:drawerSide];
     }
     if(self.drawerVisualState){
         self.drawerVisualState(self,drawerSide,percentVisible);
@@ -1280,8 +1293,6 @@ static inline CGFloat originXForDrawerOriginAndTargetOriginOffset(CGFloat origin
     UIViewController * sideDrawerViewControllerToPresent = [self sideDrawerViewControllerForSide:drawer];
     UIViewController * sideDrawerViewControllerToHide = [self sideDrawerViewControllerForSide:drawerToHide];
     
-    
-    
     [self.childControllerContainerView sendSubviewToBack:sideDrawerViewControllerToHide.view];
     [self.childControllerContainerView insertSubview:sideDrawerViewControllerToPresent.view atIndex:10];
 //    [sideDrawerViewControllerToHide.view setHidden:YES];
@@ -1292,30 +1303,20 @@ static inline CGFloat originXForDrawerOriginAndTargetOriginOffset(CGFloat origin
     [sideDrawerViewControllerToPresent beginAppearanceTransition:YES animated:animated];
 }
 
--(void)updateShadowForCenterView{
-    UIView * centerView = self.centerContainerView;
-    if(self.showsShadow){
-        centerView.layer.masksToBounds = NO;
-        centerView.layer.shadowRadius = MMDrawerDefaultShadowRadius;
-        centerView.layer.shadowOpacity = MMDrawerDefaultShadowOpacity;
-        
-        /** In the event this gets called a lot, we won't update the shadowPath
-         unless it needs to be updated (like during rotation) */
-        if (centerView.layer.shadowPath == NULL) {
-            centerView.layer.shadowPath = [[UIBezierPath bezierPathWithRect:self.centerContainerView.bounds] CGPath];
-        }
-        else{
-            CGRect currentPath = CGPathGetPathBoundingBox(centerView.layer.shadowPath);
-            if (CGRectEqualToRect(currentPath, centerView.bounds) == NO){
-                centerView.layer.shadowPath = [[UIBezierPath bezierPathWithRect:self.centerContainerView.bounds] CGPath];
-            }
-        }
+- (void)showShadowForSide:(MMDrawerSide)openSide {
+    if (openSide = MMDrawerSideLeft) {
+        UIView * leftView = self.leftDrawerViewController.view;
+        leftView.layer.masksToBounds = NO;
+        leftView.layer.shadowRadius = MMDrawerDefaultShadowRadius;
+        leftView.layer.shadowOpacity = MMDrawerDefaultShadowOpacity;
+        [leftView.layer setShadowOffset:CGSizeMake(3, 1)];
     }
-    else if (centerView.layer.shadowPath != NULL) {
-        centerView.layer.shadowRadius = 0.f;
-        centerView.layer.shadowOpacity = 0.f;
-        centerView.layer.shadowPath = NULL;
-        centerView.layer.masksToBounds = YES;
+    if (openSide = MMDrawerSideRight) {
+        UIView * rightView = self.rightDrawerViewController.view;
+        rightView.layer.masksToBounds = NO;
+        rightView.layer.shadowRadius = MMDrawerDefaultShadowRadius;
+        rightView.layer.shadowOpacity = MMDrawerDefaultShadowOpacity;
+        [rightView.layer setShadowOffset:CGSizeMake(-3, -1)];
     }
 }
 
