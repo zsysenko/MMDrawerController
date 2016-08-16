@@ -1300,14 +1300,14 @@ static inline CGFloat originXForDrawerOriginAndTargetOriginOffset(CGFloat origin
 }
 
 - (void)showShadowForSide:(MMDrawerSide)openSide {
-    if (openSide = MMDrawerSideLeft) {
+    if (openSide == MMDrawerSideLeft) {
         UIView * leftView = self.leftDrawerViewController.view;
         leftView.layer.masksToBounds = NO;
         leftView.layer.shadowRadius = MMDrawerDefaultShadowRadius;
         leftView.layer.shadowOpacity = MMDrawerDefaultShadowOpacity;
         [leftView.layer setShadowOffset:CGSizeMake(3, 1)];
     }
-    if (openSide = MMDrawerSideRight) {
+    if (openSide == MMDrawerSideRight) {
         UIView * rightView = self.rightDrawerViewController.view;
         rightView.layer.masksToBounds = NO;
         rightView.layer.shadowRadius = MMDrawerDefaultShadowRadius;
